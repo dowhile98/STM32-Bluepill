@@ -33,10 +33,33 @@
 
 int main(void)
 {
+	uint8_t button;
 
+	HSE_Sysclk();
+	/*habitar el reloj*/
+	/*1. hablitar el reloj*/
+	//RCC->APB2ENR |= 1U<<4;
+	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+	RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+	/*2. configurar lo pines */
+	//PC13
+	GPIOC->CRH &=~ (GPIO_CRH_CNF13 | GPIO_CRH_MODE13);	//Reset
+	GPIOC->CRH |= GPIO_CRH_MODE13_0;					//salida de proposito general a 10MHz
+	//PA4
+	GPIOA->CRL &=~ (GPIO_CRL_CNF4 | GPIO_CRL_MODE4);	//RESET
+	GPIOA->CRL |= GPIO_CRL_CNF4_1;						//ENTRADA CON RESISTENCIA PULL DOWN
+	GPIOA->ODR &=~ (GPIO_ODR_ODR4);
     /* Loop forever */
 	for(;;){
-
+		button = (GPIOA->IDR)>>4 & 0x1;
+		if(button == 1){
+			GPIOC->BSRR |= GPIO_BSRR_BR13;				//encendemos el led
+			//GPIOC->BRR |= GPIO_BRR_BR13;
+			//GPIOC->ODR &=~(GPIO_ODR_ODR13);
+		}else{
+			GPIOC->BSRR |= GPIO_BSRR_BS13;				//apagamos
+			//GPIOC->ODR |= GPIO_ODR_ODR13;
+		}
 	}
 }
 

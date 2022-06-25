@@ -20,6 +20,7 @@
 #include "stm32f1xx.h"
 
 #include "RCC.h"
+#include "delay.h"
 
 /*Typedef -------------------------------------------------------------------*/
 
@@ -33,10 +34,18 @@
 
 int main(void)
 {
+	HSE_Sysclk();
+	/*ejecutar una vez finalizado la configuracion del sysclk*/
+	delay_init();
 
+	RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+	//PC13
+	GPIOC->CRH &=~ (GPIO_CRH_CNF13 | GPIO_CRH_MODE13);	//Reset
+	GPIOC->CRH |= GPIO_CRH_MODE13_0;
     /* Loop forever */
 	for(;;){
-
+		GPIOC->ODR ^= 1U<<13;
+		delay_ms(50);
 	}
 }
 
