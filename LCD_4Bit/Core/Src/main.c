@@ -19,7 +19,6 @@
 /*Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 #include "stm32f1xx.h"
-#include "GPIO_Exti.h"
 #include "RCC.h"
 #include "delay.h"
 #include "defines.h"
@@ -44,21 +43,8 @@ int main(void)
 	GPIOX_MODE(MODE_PP_OUT_50MHZ, LED);
 	//LCD INIT
 	LCD_Init(16, 2);
+	LCD_Printf(0, 0, "HOLA");
     /* Loop forever */
-	//PB11 -> ENTRADA DIGITAL CON PULL UP
-	RCC->APB2ENR |= GPIOX_CLOCK(SW1);
-	GPIOX_MODE(MODE_PU_DIGITAL_INPUT, SW1);
-	GPIOX_ODR(SW1) = 1;
-	/*Configuracion de la EXTI*/
-	EXTI->IMR |= EXTI_IMR_MR11;				//deshabilia el enmascaramiento
-	EXTI->FTSR |= EXTI_FTSR_FT11;			// se va detectar flanco descendente
-	EXTI->PR |= EXTI_PR_PR11;				//clear
-	RCC->APB2ENR |= RCC_APB2ENR_AFIOEN;
-	AFIO->EXTICR[2] &=~ (AFIO_EXTICR3_EXTI11);
-	AFIO->EXTICR[2] |= AFIO_EXTICR3_EXTI11_PB; //se selecciona el PB11 para generar IT
-	/*Configurar los registros de la NVIC*/
-	NVIC_SetPriority(EXTI15_10_IRQn, 1);
-	NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 	for(;;){
 
@@ -69,13 +55,3 @@ int main(void)
 }
 
 /*Function definition -------------------------------------------------------*/
-void GPIO_EXTI_Callback(uint8_t pinNumber){
-	if(pinNumber == 11){
-		count++;
-		LCD_Clear();
-		LCD_Printf(0, 0, "IT EXTERNA");
-		LCD_Printf(0, 1, "COUNT->%d",count);
-		GPIOX_ODR(LED) ^= 1U;
-	}
-
-}
