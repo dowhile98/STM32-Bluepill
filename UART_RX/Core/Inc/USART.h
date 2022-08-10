@@ -41,6 +41,5 @@ void USART_SendData(USART_TypeDef * USARTx,uint8_t *pTxBuffer, uint32_t Size);
 /**
  * @brief enviar N data por el USART
  */
-void USART_SendData(USART_TypeDef * USARTx,uint8_t *pTxBuffer, uint32_t Size);
-
+void USART_ReceiveData(USART_TypeDef * USARTx,uint8_t *pRxBuffer, uint32_t Size);
 #endif /* INC_USART_H_ */

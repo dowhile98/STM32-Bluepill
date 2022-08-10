@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "USART.h"
+#include "delay.h"
 /*Typedef -------------------------------------------------------------------*/
 
 /*Macros --------------------------------------------------------------------*/
@@ -34,7 +35,8 @@
 #define  SERIAL_PRINTF(...) {}
 #endif
 
-
+#define SW1		A, 2
+#define LED		C, 13
 
 /*Global variables ----------------------------------------------------------*/
 uint8_t txBuffer[100];
@@ -49,14 +51,31 @@ void USART1_Init(void);
 
 int main(void)
 {
-
+	delay_init();
+	//SW1
+	RCC->APB2ENR |= GPIOX_CLOCK(SW1);
+	GPIOX_MODE(MODE_FF_DIGITAL_INPUT, SW1);
+	//GPIOX_ODR(SW1) = 1;						//activa la resistencia pull up
+	//LED
+	RCC->APB2ENR |= GPIOX_CLOCK(LED);
+	GPIOX_MODE(MODE_PP_OUT_50MHZ, LED);
 	/*Pinout init*/
 	USART1_PINConfig();
 	/*usart init*/
-	USART_Init(USART1, 8E+6, 115200, 0);
+	USART_Init(USART1, 8E+6, 115200, USART_CR1_RXNEIE);
+	NVIC_EnableIRQ(USART1_IRQn);
     /* Loop forever */
 
 	for(;;){
+//		USART_ReceiveData(USART1, rxBuffer, 10);
+//		SERIAL_PRINTF("datos recibidos->%s\r\n",rxBuffer);
+		if(GPIOX_IDR(SW1) == 1){
+			//SE PRESIONA
+			SERIAL_PRINTF("1\r\n");
+		}else{
+			SERIAL_PRINTF("0\r\n");
+		}
+		delay_ms(50);
 
 	}
 }
@@ -73,7 +92,17 @@ void USART1_PINConfig(void){
 	return;
 }
 
-
+void USART1_IRQHandler(void){
+	uint8_t temp;
+	if(USART1->SR & USART_SR_RXNE){
+		temp = USART1->DR;
+		if(temp == '1'){
+			GPIOX_ODR(LED) = 0;
+		}else {
+			GPIOX_ODR(LED) = 1;
+		}
+	}
+}
 /*****************************************************************/
 
 int __io_putchar(int ch){
